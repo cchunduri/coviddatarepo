@@ -1,0 +1,9 @@
+{
+  "properties": [
+    {
+      "name": "corona.datapoint.one",
+      "type": "java.lang.String",
+      "description": "Indian Health ministry website."
+    }
+  ]
+}

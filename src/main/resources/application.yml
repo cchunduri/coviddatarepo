@@ -1,0 +1,23 @@
+spring:
+  datasource:
+    url:
+    username:
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: create
+
+data:
+  retrieval:
+    schedule: 0 0 * * * *
+
+corona:
+  datapoint:
+    one: https://www.mohfw.gov.in/
+    two: https://www.worldometers.info/coronavirus/
+
+api:
+  timeout: 10000
+  maxattempts: 2
+
