@@ -10,3 +10,7 @@ Also there is another api endipoint,
 **/retrieveDataFromSources** <br />
     This endpoint retrieves the data from the sources, this is scheduled to run for every hour. 
 Also! call this endpoint for the first time when app got deployed.
+
+Data Sources
+1) https://www.mohfw.gov.in/
+2) https://www.worldometers.info/coronavirus/

@@ -20,4 +20,3 @@ corona:
 api:
   timeout: 10000
   maxattempts: 2
-
