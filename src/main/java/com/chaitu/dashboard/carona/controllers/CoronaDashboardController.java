@@ -24,6 +24,11 @@ public class CoronaDashboardController {
         this.worldRepository = worldRepository;
     }
 
+    @GetMapping("/")
+    private String helloDashBoard() {
+        return "Welcome to Dashboard";
+    }
+
     @GetMapping("/getCasesByCountry")
     private List<Place> getCasesByCountry() {
         return null;
