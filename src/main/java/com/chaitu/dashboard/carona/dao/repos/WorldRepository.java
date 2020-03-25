@@ -11,7 +11,4 @@ import java.util.List;
 public interface WorldRepository extends CrudRepository<PlacesModel, Long> {
 
     PlacesModel findByCountry(String country);
-
-    @Query("FROM world_places w where w.country = 'India'")
-    List<PlacesModel> findAllIndianData();
 }

@@ -69,7 +69,7 @@ public class PlacesDao {
         return Boolean.TRUE;
     }
 
-    public List<PlacesModel> getIndianStatesData() {
-        return worldRepository.findAllIndianData();
+    public List<IndianStates> getIndianStatesData() {
+        return indianStateRepo.findAll();
     }
 }

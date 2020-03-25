@@ -141,13 +141,13 @@ public class DashboardService {
     public List<Place> getIndianStatesDataFromDb() {
         return placesDao.getIndianStatesData()
                 .stream()
-                .map(placesModel -> {
+                .map(indianStateDao -> {
                     Place place = new Place();
-                    place.setCountry(placesModel.getCountry());
-                    place.setNumberOfConfirmed(placesModel.getNumberOfConfirmed());
-                    place.setNumberOfDeaths(placesModel.getNumberOfDeaths());
-                    place.setNumberOfRecovered(placesModel.getNumberOfRecovered());
-                    place.setNameOfThePlace(placesModel.getNameOfThePlace());
+                    place.setCountry(indianStateDao.getCountry());
+                    place.setNumberOfConfirmed(indianStateDao.getNumberOfConfirmed());
+                    place.setNumberOfDeaths(indianStateDao.getNumberOfDeaths());
+                    place.setNumberOfRecovered(indianStateDao.getNumberOfRecovered());
+                    place.setNameOfThePlace(indianStateDao.getNameOfThePlace());
                     return place;
                 })
                 .collect(Collectors.toList());

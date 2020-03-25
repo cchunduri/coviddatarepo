@@ -9,7 +9,6 @@ import java.util.List;
 
 @Data
 @Entity(name = "world_places")
-@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 public class PlacesModel {
 
     @Id
