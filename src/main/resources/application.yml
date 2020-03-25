@@ -14,6 +14,7 @@ corona:
   datapoint:
     one: https://www.mohfw.gov.in/
     two: https://www.worldometers.info/coronavirus/
+    three: https://pomber.github.io/covid19/timeseries.json
 
 api:
   timeout: 10000

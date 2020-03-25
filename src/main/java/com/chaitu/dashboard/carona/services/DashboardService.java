@@ -1,11 +1,17 @@
 package com.chaitu.dashboard.carona.services;
 
 import com.chaitu.dashboard.carona.dao.PlacesDao;
+import com.chaitu.dashboard.carona.dao.models.IndianStates;
 import com.chaitu.dashboard.carona.dao.models.PlacesModel;
+import com.chaitu.dashboard.carona.dto.CountryData;
 import com.chaitu.dashboard.carona.dto.Place;
+import com.chaitu.dashboard.carona.dto.TimeSeries;
 import com.chaitu.dashboard.carona.utils.HtmlUtils;
+import com.chaitu.dashboard.carona.utils.RestClientUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -26,27 +32,29 @@ public class DashboardService {
 
     private final PlacesDao placesDao;
     private final HtmlUtils htmlUtils;
+    private final RestClientUtils restClientUtils;
 
-    public DashboardService(PlacesDao placesDao, HtmlUtils htmlUtils) {
+    public DashboardService(PlacesDao placesDao, HtmlUtils htmlUtils, RestClientUtils restClientUtils) {
         this.placesDao = placesDao;
         this.htmlUtils = htmlUtils;
+        this.restClientUtils = restClientUtils;
     }
 
     public void getCasesByCountry(String country) {
 
     }
 
-    public void getIndianStatesData() {
+    public Boolean getIndianStatesData() {
         var htmlDocumentOptional = htmlUtils.parseHtmlByUrl(indianHealthMinistryUrl);
         if (htmlDocumentOptional.isPresent()) {
             var htmlDocument = htmlDocumentOptional.get();
-            List<PlacesModel> placesModelList = htmlDocument.getElementsByTag("table")
-                    .select("tr")
+            Elements elementsList = htmlDocument.getElementById("cases").getElementsByTag("table").select("tr");
+            List<IndianStates> placesModelList = elementsList
                     .stream()
                     .skip(1)
                     .map(tr -> {
                         List<String> columns = tr.select("td").eachText();
-                        PlacesModel place = new PlacesModel();
+                        IndianStates place = new IndianStates();
                         for (int i = 1; i < columns.size(); i++) {
                             switch (i) {
                                 case 1:
@@ -69,8 +77,9 @@ public class DashboardService {
                         return place;
                     })
                     .collect(Collectors.toList());
-            placesDao.saveDataToDb(placesModelList, true);
+            return placesDao.saveIndianDataToDb(placesModelList);
         }
+        return Boolean.FALSE;
     }
 
     private int cleanText(String number) {
@@ -85,7 +94,7 @@ public class DashboardService {
         }
     }
 
-    public void getWorldData() {
+    public Boolean getWorldData() {
         List<PlacesModel> placesList = new ArrayList<>();
         var htmlDocumentOptional = htmlUtils.parseHtmlByUrl(worldHealthMinistryUrl);
         if (htmlDocumentOptional.isPresent()) {
@@ -120,8 +129,13 @@ public class DashboardService {
                         return place;
                     })
                     .collect(Collectors.toList());
-            placesDao.saveDataToDb(placesList, false);
+            return placesDao.saveWorldDataToDb(placesList);
+        } else {
+            String timeSeriesData = restClientUtils.getWorldData();
+            log.info("{}", timeSeriesData);
+            //TODO
         }
+        return Boolean.FALSE;
     }
 
     public List<Place> getIndianStatesDataFromDb() {

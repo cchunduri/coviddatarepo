@@ -1,5 +1,6 @@
 package com.chaitu.dashboard.carona.utils;
 
+import com.chaitu.dashboard.carona.exception.NetworkException;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;

@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @RestController
@@ -47,10 +48,15 @@ public class CoronaDashboardController {
     @Scheduled(cron = "${data.retrieval.schedule}")
     @GetMapping("/retrieveDataFromSources")
     private void retrieveDataFromDataSources() {
-        log.info("Retrieving Indian data");
-        dashboardService.getIndianStatesData();
-
-        log.info("Retrieving World Data");
-        dashboardService.getWorldData();
+        CompletableFuture<Boolean> completableFuture = new CompletableFuture<>();
+        completableFuture.completeAsync(() -> {
+            log.info("Retrieving Indian data");
+            return dashboardService.getIndianStatesData();
+        }).completeAsync(() -> {
+            log.info("Retrieving World Data");
+            return dashboardService.getWorldData();
+        }).thenAccept(result -> {
+            log.info("Completed Retrieving data...{}", result);
+        });
     }
 }

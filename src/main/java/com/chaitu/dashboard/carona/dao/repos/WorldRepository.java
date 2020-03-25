@@ -10,7 +10,6 @@ import java.util.List;
 @Repository
 public interface WorldRepository extends CrudRepository<PlacesModel, Long> {
 
-    PlacesModel findByNameOfThePlace(String nameOfThePlace);
     PlacesModel findByCountry(String country);
 
     @Query("FROM world_places w where w.country = 'India'")
