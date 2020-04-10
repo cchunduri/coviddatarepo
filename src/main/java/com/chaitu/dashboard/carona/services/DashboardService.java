@@ -1,27 +1,29 @@
 package com.chaitu.dashboard.carona.services;
 
+import com.chaitu.dashboard.carona.dao.CountriesDao;
 import com.chaitu.dashboard.carona.dao.PlacesDao;
-import com.chaitu.dashboard.carona.dao.models.IndianStates;
+import com.chaitu.dashboard.carona.dao.StatesDao;
+import com.chaitu.dashboard.carona.dao.models.CountryModel;
 import com.chaitu.dashboard.carona.dao.models.PlacesModel;
-import com.chaitu.dashboard.carona.dto.CountryData;
-import com.chaitu.dashboard.carona.dto.Place;
-import com.chaitu.dashboard.carona.dto.TimeSeries;
+import com.chaitu.dashboard.carona.dao.models.StatesModel;
+import com.chaitu.dashboard.carona.helpers.IndiaStatesDataHelper;
+import com.chaitu.dashboard.carona.helpers.WorldDataHelper;
 import com.chaitu.dashboard.carona.utils.HtmlUtils;
 import com.chaitu.dashboard.carona.utils.RestClientUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
+import javax.transaction.Transactional;
+import java.time.LocalTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@Transactional
 public class DashboardService {
 
     @Value("${corona.datapoint.one}")
@@ -33,103 +35,58 @@ public class DashboardService {
     private final PlacesDao placesDao;
     private final HtmlUtils htmlUtils;
     private final RestClientUtils restClientUtils;
+    private final CountriesDao countriesDao;
+    private final StatesDao statesDao;
 
-    public DashboardService(PlacesDao placesDao, HtmlUtils htmlUtils, RestClientUtils restClientUtils) {
+    private final WorldDataHelper worldDataHelper;
+
+    private final IndiaStatesDataHelper indiaStatesDataHelper;
+
+    public DashboardService(PlacesDao placesDao, HtmlUtils htmlUtils,
+                            RestClientUtils restClientUtils,
+                            CountriesDao countriesDao, StatesDao statesDao,
+                            WorldDataHelper worldDataHelper,
+                            IndiaStatesDataHelper indiaStatesDataHelper) {
         this.placesDao = placesDao;
         this.htmlUtils = htmlUtils;
         this.restClientUtils = restClientUtils;
-    }
-
-    public void getCasesByCountry(String country) {
-
+        this.countriesDao = countriesDao;
+        this.statesDao = statesDao;
+        this.worldDataHelper = worldDataHelper;
+        this.indiaStatesDataHelper = indiaStatesDataHelper;
     }
 
     public Boolean getIndianStatesData() {
         var htmlDocumentOptional = htmlUtils.parseHtmlByUrl(indianHealthMinistryUrl);
         if (htmlDocumentOptional.isPresent()) {
             var htmlDocument = htmlDocumentOptional.get();
-            Elements elementsList = htmlDocument.getElementById("cases").getElementsByTag("table").select("tr");
-            List<IndianStates> placesModelList = elementsList
+            Elements elementsList = htmlDocument.getElementById("state-data").getElementsByTag("table").select("tr");
+            List<StatesModel> placesModelList = elementsList
                     .stream()
                     .skip(1)
-                    .map(tr -> {
-                        List<String> columns = tr.select("td").eachText();
-                        IndianStates place = new IndianStates();
-                        for (int i = 1; i < columns.size(); i++) {
-                            switch (i) {
-                                case 1:
-                                    place.setNameOfThePlace(columns.get(i));
-                                    break;
-                                case 3:
-                                    int stateConfirmation = cleanText(columns.get(i - 1));
-                                    int foreignConfirmation = cleanText(columns.get(i));
-                                    place.setNumberOfConfirmed(stateConfirmation + foreignConfirmation);
-                                    break;
-                                case 4:
-                                    place.setNumberOfRecovered(cleanText(columns.get(i)));
-                                    break;
-                                case 5:
-                                    place.setNumberOfDeaths(cleanText(columns.get(i)));
-                                    break;
-                            }
-                        }
-                        place.setCountry("India");
-                        return place;
-                    })
+                    .map(indiaStatesDataHelper::getStatesModel)
                     .collect(Collectors.toList());
-            return placesDao.saveIndianDataToDb(placesModelList);
+            return placesDao.saveDataByCountry(placesModelList);
         }
         return Boolean.FALSE;
     }
 
-    private int cleanText(String number) {
-        return Integer.parseInt(number.split(" ")[0].trim());
-    }
-
-    private int escapeCommas(String num) {
-        if (StringUtils.isEmpty(num)) {
-            return 0;
-        } else {
-            return Integer.parseInt(num.replace(",", ""));
-        }
-    }
-
     public Boolean getWorldData() {
-        List<PlacesModel> placesList = new ArrayList<>();
+        List<CountryModel> countryList;
         var htmlDocumentOptional = htmlUtils.parseHtmlByUrl(worldHealthMinistryUrl);
+        LocalTime presentTime = LocalTime.now();
         if (htmlDocumentOptional.isPresent()) {
             var htmlDocument = htmlDocumentOptional.get();
-            placesList = htmlDocument.getElementById("main_table_countries_today")
+            PlacesModel placesModel = new PlacesModel();
+            countryList = htmlDocument.getElementById("main_table_countries_today")
                     .select("tr")
                     .stream()
-                    .skip(1)
-                    .map(tr -> {
-                        List<String> columns = tr.select("td")
-                                .stream()
-                                .map(Element::text)
-                                .collect(Collectors.toList());
-
-                        PlacesModel place = new PlacesModel();
-                        for (int i = 0; i < columns.size(); i++) {
-                            switch (i) {
-                                case 0:
-                                    place.setCountry(columns.get(i));
-                                    break;
-                                case 1:
-                                    place.setNumberOfConfirmed(escapeCommas(columns.get(i)));
-                                    break;
-                                case 3:
-                                    place.setNumberOfDeaths(escapeCommas(columns.get(i)));
-                                    break;
-                                case 5:
-                                    place.setNumberOfRecovered(escapeCommas(columns.get(i)));
-                                    break;
-                            }
-                        }
-                        return place;
-                    })
+                    .skip(8)
+                    .map(tr -> worldDataHelper.getCountryModel(presentTime, placesModel, tr))
                     .collect(Collectors.toList());
-            return placesDao.saveWorldDataToDb(placesList);
+            placesModel.setTimeOfUpdate(presentTime);
+            placesModel.setCountryList(countryList);
+            return placesDao.saveWorldDataToDb(placesModel);
         } else {
             String timeSeriesData = restClientUtils.getWorldData();
             log.info("{}", timeSeriesData);
@@ -138,18 +95,15 @@ public class DashboardService {
         return Boolean.FALSE;
     }
 
-    public List<Place> getIndianStatesDataFromDb() {
-        return placesDao.getIndianStatesData()
-                .stream()
-                .map(indianStateDao -> {
-                    Place place = new Place();
-                    place.setCountry(indianStateDao.getCountry());
-                    place.setNumberOfConfirmed(indianStateDao.getNumberOfConfirmed());
-                    place.setNumberOfDeaths(indianStateDao.getNumberOfDeaths());
-                    place.setNumberOfRecovered(indianStateDao.getNumberOfRecovered());
-                    place.setNameOfThePlace(indianStateDao.getNameOfThePlace());
-                    return place;
-                })
-                .collect(Collectors.toList());
+    public Optional<CountryModel> getLatestDataByCountry(String countryName) {
+        return countriesDao.getLatestDataByCountryName(countryName);
+    }
+
+    public Optional<StatesModel> getLatestDataByState(String stateName) {
+        return statesDao.getLatestDataByState(stateName);
+    }
+
+    public PlacesModel getLatestWorldData() {
+        return placesDao.getLatestWorldData();
     }
 }

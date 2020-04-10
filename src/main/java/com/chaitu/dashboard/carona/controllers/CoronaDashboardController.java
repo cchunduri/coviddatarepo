@@ -1,15 +1,18 @@
 package com.chaitu.dashboard.carona.controllers;
 
+import com.chaitu.dashboard.carona.dao.models.CountryModel;
+import com.chaitu.dashboard.carona.dao.models.StatesModel;
 import com.chaitu.dashboard.carona.dao.repos.WorldRepository;
 import com.chaitu.dashboard.carona.dao.models.PlacesModel;
 import com.chaitu.dashboard.carona.services.DashboardService;
-import com.chaitu.dashboard.carona.dto.Place;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 @Slf4j
@@ -30,19 +33,19 @@ public class CoronaDashboardController {
         return "Welcome to Dashboard";
     }
 
-    @GetMapping("/getCasesByCountry")
-    private List<Place> getCasesByCountry() {
-        return null;
+    @GetMapping("/getLatestByCountry/{countryName}")
+    private Optional<CountryModel> getLatestDataByCountry(@PathVariable String countryName) {
+        return dashboardService.getLatestDataByCountry(countryName);
     }
 
-    @GetMapping("/getIndianStatesData")
-    private List<Place> getIndianStatesData() {
-        return dashboardService.getIndianStatesDataFromDb();
+    @GetMapping("/getLatestByState/{stateName}")
+    private Optional<StatesModel> getLatestDataByState(@PathVariable String stateName) {
+        return dashboardService.getLatestDataByState(stateName);
     }
 
-    @GetMapping("/getAllWorldData")
-    private List<PlacesModel> getWorldData() {
-        return  (List<PlacesModel>) worldRepository.findAll();
+    @GetMapping("/getAllCountriesData")
+    private PlacesModel getWorldData() {
+        return dashboardService.getLatestWorldData();
     }
 
     @Scheduled(cron = "${data.retrieval.schedule}")
@@ -50,13 +53,19 @@ public class CoronaDashboardController {
     private void retrieveDataFromDataSources() {
         CompletableFuture<Boolean> completableFuture = new CompletableFuture<>();
         completableFuture.completeAsync(() -> {
-            log.info("Retrieving Indian data");
-            return dashboardService.getIndianStatesData();
-        }).completeAsync(() -> {
             log.info("Retrieving World Data");
             return dashboardService.getWorldData();
+        }).thenApply(result -> {
+            if (result) {
+                log.info("Retrieving Indian data");
+                return dashboardService.getIndianStatesData();
+            }
+            return false;
         }).thenAccept(result -> {
-            log.info("Completed Retrieving data...{}", result);
+            if (result)
+                log.info("Completed Retrieving data successfully");
+            else
+                log.info("Failed retrieving data, refer to logs");
         });
     }
 }

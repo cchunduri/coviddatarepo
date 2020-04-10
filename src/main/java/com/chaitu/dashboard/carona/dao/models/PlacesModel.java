@@ -1,10 +1,9 @@
 package com.chaitu.dashboard.carona.dao.models;
 
 import lombok.Data;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 
 import javax.persistence.*;
+import java.time.LocalTime;
 import java.util.List;
 
 @Data
@@ -13,11 +12,14 @@ public class PlacesModel {
 
     @Id
     @GeneratedValue (strategy = GenerationType.AUTO)
-    private Long id;
+    private Long placeId;
 
-    private int numberOfConfirmed;
-    private int numberOfDeaths;
-    private int numberOfRecovered;
-    private String nameOfThePlace;
-    private String country;
+    private int totalNumberOfConfirmed;
+    private int totalNumberOfDeaths;
+    private int totalNumberOfRecovered;
+    private LocalTime timeOfUpdate;
+
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JoinColumn(name = "place_id")
+    private List<CountryModel> countryList;
 }
