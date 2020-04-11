@@ -3,6 +3,7 @@ package com.chaitu.dashboard.carona.dao.models;
 import lombok.Data;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
@@ -17,7 +18,7 @@ public class PlacesModel {
     private int totalNumberOfConfirmed;
     private int totalNumberOfDeaths;
     private int totalNumberOfRecovered;
-    private LocalTime timeOfUpdate;
+    private LocalDateTime timeOfUpdate;
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "place_id")

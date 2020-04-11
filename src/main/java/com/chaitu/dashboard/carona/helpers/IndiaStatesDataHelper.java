@@ -26,15 +26,13 @@ public class IndiaStatesDataHelper {
                     case 1:
                         state.setNameOfTheState(columns.get(i));
                         break;
-                    case 3:
-                        int stateConfirmation = appUtils.cleanText(columns.get(i - 1));
-                        int foreignConfirmation = appUtils.cleanText(columns.get(i));
-                        state.setNumberOfConfirmed(stateConfirmation + foreignConfirmation);
+                    case 2:
+                        state.setNumberOfConfirmed( appUtils.cleanText(columns.get(i)));
                         break;
-                    case 4:
+                    case 3:
                         state.setNumberOfRecovered(appUtils.cleanText(columns.get(i)));
                         break;
-                    case 5:
+                    case 4:
                         state.setNumberOfDeaths(appUtils.cleanText(columns.get(i)));
                         break;
                 }

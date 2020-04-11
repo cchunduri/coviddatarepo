@@ -1,22 +1,22 @@
 package com.chaitu.dashboard.carona.controllers;
 
-import com.chaitu.dashboard.carona.dao.models.CountryModel;
-import com.chaitu.dashboard.carona.dao.models.StatesModel;
 import com.chaitu.dashboard.carona.dao.repos.WorldRepository;
 import com.chaitu.dashboard.carona.dao.models.PlacesModel;
+import com.chaitu.dashboard.carona.dto.Place;
 import com.chaitu.dashboard.carona.services.DashboardService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-import java.util.Optional;
+import java.time.LocalDateTime;
 import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @RestController
+@CrossOrigin
 public class CoronaDashboardController {
 
     final DashboardService dashboardService;
@@ -34,17 +34,22 @@ public class CoronaDashboardController {
     }
 
     @GetMapping("/getLatestByCountry/{countryName}")
-    private Optional<CountryModel> getLatestDataByCountry(@PathVariable String countryName) {
+    private Place getLatestDataByCountry(@PathVariable String countryName) {
         return dashboardService.getLatestDataByCountry(countryName);
     }
 
     @GetMapping("/getLatestByState/{stateName}")
-    private Optional<StatesModel> getLatestDataByState(@PathVariable String stateName) {
+    private Place getLatestDataByState(@PathVariable String stateName) {
         return dashboardService.getLatestDataByState(stateName);
     }
 
     @GetMapping("/getAllCountriesData")
-    private PlacesModel getWorldData() {
+    private PlacesModel getAllCountries() {
+        return dashboardService.getAllCountries();
+    }
+
+    @GetMapping("/getWorldData")
+    private Place getWorldData() {
         return dashboardService.getLatestWorldData();
     }
 
@@ -63,9 +68,9 @@ public class CoronaDashboardController {
             return false;
         }).thenAccept(result -> {
             if (result)
-                log.info("Completed Retrieving data successfully");
+                log.info("Completed Retrieving data successfully {}", LocalDateTime.now());
             else
-                log.info("Failed retrieving data, refer to logs");
+                log.info("Failed retrieving data, refer to logs {}", LocalDateTime.now());
         });
     }
 }

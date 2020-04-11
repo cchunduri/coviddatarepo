@@ -8,5 +8,4 @@ public class Place {
     private int numberOfDeaths;
     private int numberOfRecovered;
     private String nameOfThePlace;
-    private String country;
 }

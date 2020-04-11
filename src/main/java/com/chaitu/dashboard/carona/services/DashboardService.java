@@ -6,6 +6,7 @@ import com.chaitu.dashboard.carona.dao.StatesDao;
 import com.chaitu.dashboard.carona.dao.models.CountryModel;
 import com.chaitu.dashboard.carona.dao.models.PlacesModel;
 import com.chaitu.dashboard.carona.dao.models.StatesModel;
+import com.chaitu.dashboard.carona.dto.Place;
 import com.chaitu.dashboard.carona.helpers.IndiaStatesDataHelper;
 import com.chaitu.dashboard.carona.helpers.WorldDataHelper;
 import com.chaitu.dashboard.carona.utils.HtmlUtils;
@@ -16,6 +17,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
@@ -74,7 +76,7 @@ public class DashboardService {
     public Boolean getWorldData() {
         List<CountryModel> countryList;
         var htmlDocumentOptional = htmlUtils.parseHtmlByUrl(worldHealthMinistryUrl);
-        LocalTime presentTime = LocalTime.now();
+        LocalDateTime presentTime = LocalDateTime.now();
         if (htmlDocumentOptional.isPresent()) {
             var htmlDocument = htmlDocumentOptional.get();
             PlacesModel placesModel = new PlacesModel();
@@ -95,15 +97,45 @@ public class DashboardService {
         return Boolean.FALSE;
     }
 
-    public Optional<CountryModel> getLatestDataByCountry(String countryName) {
-        return countriesDao.getLatestDataByCountryName(countryName);
+    public Place getLatestDataByCountry(String countryName) {
+        Optional<CountryModel> latestDataByCountryName = countriesDao.getLatestDataByCountryName(countryName);
+        if (latestDataByCountryName.isPresent()) {
+            CountryModel countryModel = latestDataByCountryName.get();
+            Place world = new Place();
+            world.setNumberOfConfirmed(countryModel.getNumberOfConfirmed());
+            world.setNumberOfDeaths(countryModel.getNumberOfDeaths());
+            world.setNumberOfRecovered(countryModel.getNumberOfRecovered());
+            world.setNameOfThePlace(countryModel.getCountryName());
+            return world;
+        }
+        return null;
     }
 
-    public Optional<StatesModel> getLatestDataByState(String stateName) {
-        return statesDao.getLatestDataByState(stateName);
+    public Place getLatestDataByState(String stateName) {
+        Optional<StatesModel> latestDataByState = statesDao.getLatestDataByState(stateName);
+        if (latestDataByState.isPresent()){
+            StatesModel statesModel = latestDataByState.get();
+            Place world = new Place();
+            world.setNumberOfConfirmed(statesModel.getNumberOfConfirmed());
+            world.setNumberOfDeaths(statesModel.getNumberOfDeaths());
+            world.setNumberOfRecovered(statesModel.getNumberOfRecovered());
+            world.setNameOfThePlace(statesModel.getNameOfTheState());
+            return world;
+        }
+
+        return null;
     }
 
-    public PlacesModel getLatestWorldData() {
+    public PlacesModel getAllCountries() {
         return placesDao.getLatestWorldData();
+    }
+
+    public Place getLatestWorldData() {
+        PlacesModel placesModel = placesDao.getLatestWorldData();
+        Place world = new Place();
+        world.setNumberOfConfirmed(placesModel.getTotalNumberOfConfirmed());
+        world.setNumberOfDeaths(placesModel.getTotalNumberOfDeaths());
+        world.setNumberOfRecovered(placesModel.getTotalNumberOfRecovered());
+        return world;
     }
 }

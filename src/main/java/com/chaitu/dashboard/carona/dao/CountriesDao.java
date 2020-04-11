@@ -6,6 +6,8 @@ import com.chaitu.dashboard.carona.dao.models.StatesModel;
 import com.chaitu.dashboard.carona.dao.repos.CountriesRepo;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,6 +35,7 @@ public class CountriesDao {
                 .findFirst()
                 .ifPresent(indiaDetails -> {
                     indiaDetails.setStatesList(statesList);
+                    indiaDetails.setUpdatedTime(LocalDateTime.now());
                     saveByCountry(indiaDetails);
                 });
     }

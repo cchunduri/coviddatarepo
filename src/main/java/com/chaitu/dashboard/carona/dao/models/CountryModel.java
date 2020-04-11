@@ -3,6 +3,8 @@ package com.chaitu.dashboard.carona.dao.models;
 import lombok.Data;
 
 import javax.persistence.*;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
@@ -17,7 +19,7 @@ public class CountryModel {
     private int numberOfConfirmed;
     private int numberOfDeaths;
     private int numberOfRecovered;
-    private LocalTime updatedTime;
+    private LocalDateTime updatedTime;
     private String countryName;
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
