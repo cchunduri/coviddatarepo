@@ -4,7 +4,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: validate
 
 data:
   retrieval:
@@ -19,3 +19,14 @@ corona:
 api:
   timeout: 10000
   maxattempts: 2
+
+springdoc:
+  swagger-ui:
+    path: /docs
+
+logging:
+  level:
+    com:
+      chaitu:
+        dashboard:
+          carona: INFO
