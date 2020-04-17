@@ -59,7 +59,7 @@ public class CoronaDashboardController {
         CompletableFuture<Boolean> completableFuture = new CompletableFuture<>();
         completableFuture.completeAsync(() -> {
             log.info("Retrieving World Data");
-            return dashboardService.getWorldData();
+            return dashboardService.getWorldData(true);
         }).thenApply(result -> {
             if (result) {
                 log.info("Retrieving Indian data");
