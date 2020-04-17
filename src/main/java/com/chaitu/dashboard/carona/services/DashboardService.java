@@ -117,7 +117,7 @@ public class DashboardService {
         return Boolean.FALSE;
     }
 
-    public Place getLatestDataByCountry(String countryName) {
+    public Optional<Place> getLatestDataByCountry(String countryName) {
         Optional<CountryModel> latestDataByCountryName = countriesDao.getLatestDataByCountryName(countryName);
         if (latestDataByCountryName.isPresent()) {
             CountryModel countryModel = latestDataByCountryName.get();
@@ -126,9 +126,9 @@ public class DashboardService {
             world.setNumberOfDeaths(countryModel.getNumberOfDeaths());
             world.setNumberOfRecovered(countryModel.getNumberOfRecovered());
             world.setNameOfThePlace(countryModel.getCountryName());
-            return world;
+            return Optional.of(world);
         }
-        return null;
+        return Optional.empty();
     }
 
     public Place getLatestDataByState(String stateName) {

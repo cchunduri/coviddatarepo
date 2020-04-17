@@ -25,7 +25,7 @@ public class CountriesDao {
     }
 
     public Optional<CountryModel> getLatestDataByCountryName(String countryName) {
-        return Optional.of(countriesRepo.findTopByCountryNameOrderByCountryIdDesc(countryName));
+        return Optional.ofNullable(countriesRepo.findTopByCountryNameOrderByCountryIdDesc(countryName));
     }
 
     public void updateStatesByCountry(List<StatesModel> statesList, PlacesModel worldData) {

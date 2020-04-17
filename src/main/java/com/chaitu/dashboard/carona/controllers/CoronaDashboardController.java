@@ -5,6 +5,8 @@ import com.chaitu.dashboard.carona.dao.models.PlacesModel;
 import com.chaitu.dashboard.carona.dto.Place;
 import com.chaitu.dashboard.carona.services.DashboardService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 @Slf4j
@@ -34,8 +37,11 @@ public class CoronaDashboardController {
     }
 
     @GetMapping("/getLatestByCountry/{countryName}")
-    private Place getLatestDataByCountry(@PathVariable String countryName) {
-        return dashboardService.getLatestDataByCountry(countryName);
+    private ResponseEntity<Place> getLatestDataByCountry(@PathVariable String countryName) {
+        var placeOptional= dashboardService.getLatestDataByCountry(countryName);
+        return placeOptional
+                .map(place -> new ResponseEntity<>(place, HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     @GetMapping("/getLatestByState/{stateName}")
