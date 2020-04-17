@@ -7,6 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.jsoup.nodes.Element;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
@@ -21,7 +22,7 @@ public class WorldDataHelper {
         this.appUtils = appUtils;
     }
 
-    public CountryModel getCountryModel(LocalDateTime presentTime, PlacesModel placesModel, Element countryColumn) {
+    public CountryModel getCountryModel(LocalDate presentTime, PlacesModel placesModel, Element countryColumn) {
         List<String> columns = countryColumn.select("td")
                 .stream()
                 .map(Element::text)

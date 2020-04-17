@@ -17,9 +17,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -61,6 +62,7 @@ public class DashboardService {
     public Boolean getIndianStatesData() {
         var htmlDocumentOptional = htmlUtils.parseHtmlByUrl(indianHealthMinistryUrl);
         if (htmlDocumentOptional.isPresent()) {
+            log.info(htmlDocumentOptional.get().toString());
             var htmlDocument = htmlDocumentOptional.get();
             Elements elementsList = htmlDocument.getElementById("state-data").getElementsByTag("table").select("tr");
             List<StatesModel> placesModelList = elementsList
@@ -73,26 +75,47 @@ public class DashboardService {
         return Boolean.FALSE;
     }
 
-    public Boolean getWorldData() {
+    public Boolean getWorldData(Boolean alternative) {
         List<CountryModel> countryList;
-        var htmlDocumentOptional = htmlUtils.parseHtmlByUrl(worldHealthMinistryUrl);
-        LocalDateTime presentTime = LocalDateTime.now();
-        if (htmlDocumentOptional.isPresent()) {
-            var htmlDocument = htmlDocumentOptional.get();
-            PlacesModel placesModel = new PlacesModel();
-            countryList = htmlDocument.getElementById("main_table_countries_today")
-                    .select("tr")
-                    .stream()
-                    .skip(8)
-                    .map(tr -> worldDataHelper.getCountryModel(presentTime, placesModel, tr))
-                    .collect(Collectors.toList());
-            placesModel.setTimeOfUpdate(presentTime);
-            placesModel.setCountryList(countryList);
-            return placesDao.saveWorldDataToDb(placesModel);
+        if (!alternative) {
+            var htmlDocumentOptional = htmlUtils.parseHtmlByUrl(worldHealthMinistryUrl);
+            LocalDate presentTime = LocalDate.now();
+            if (htmlDocumentOptional.isPresent()) {
+                var htmlDocument = htmlDocumentOptional.get();
+                PlacesModel placesModel = new PlacesModel();
+                countryList = htmlDocument.getElementById("main_table_countries_today")
+                        .select("tr")
+                        .stream()
+                        .skip(8)
+                        .map(tr -> worldDataHelper.getCountryModel(presentTime, placesModel, tr))
+                        .collect(Collectors.toList());
+                placesModel.setTimeOfUpdate(presentTime);
+                placesModel.setCountryList(countryList);
+                return placesDao.saveWorldDataToDb(placesModel);
+            }
         } else {
-            String timeSeriesData = restClientUtils.getWorldData();
-            log.info("{}", timeSeriesData);
-            //TODO
+            Map<String, List<Map<String, Object>>> timeSeriesData = restClientUtils.getWorldData();
+            DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-M-dd");
+            List<CountryModel> countryModelsList = timeSeriesData.entrySet()
+                    .stream()
+                    .map(entiry -> {
+                        log.info(entiry.getValue().toString());
+                        List<Map<String, Object>> countryCompleteData = entiry.getValue();
+                        Map<String, Object> latestData = countryCompleteData.get(countryCompleteData.size() - 1);
+                        CountryModel countryModel = new CountryModel();
+                        countryModel.setCountryName(entiry.getKey());
+                        countryModel.setUpdatedTime(LocalDate.parse((CharSequence) latestData.get("date"), dateTimeFormatter));
+                        countryModel.setNumberOfConfirmed((Integer) latestData.get("confirmed"));
+                        countryModel.setNumberOfDeaths((Integer) latestData.get("deaths"));
+                        countryModel.setNumberOfRecovered((Integer) latestData.get("recovered"));
+                        return countryModel;
+                    })
+                    .collect(Collectors.toList());
+            log.info(countryModelsList.toString());
+            PlacesModel placesModel = new PlacesModel();
+            placesModel.setTimeOfUpdate(LocalDate.now());
+            placesModel.setCountryList(countryModelsList);
+            return placesDao.saveWorldDataToDb(placesModel);
         }
         return Boolean.FALSE;
     }
@@ -113,7 +136,7 @@ public class DashboardService {
 
     public Place getLatestDataByState(String stateName) {
         Optional<StatesModel> latestDataByState = statesDao.getLatestDataByState(stateName);
-        if (latestDataByState.isPresent()){
+        if (latestDataByState.isPresent()) {
             StatesModel statesModel = latestDataByState.get();
             Place world = new Place();
             world.setNumberOfConfirmed(statesModel.getNumberOfConfirmed());

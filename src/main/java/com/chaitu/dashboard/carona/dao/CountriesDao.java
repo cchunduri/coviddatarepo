@@ -35,7 +35,7 @@ public class CountriesDao {
                 .findFirst()
                 .ifPresent(indiaDetails -> {
                     indiaDetails.setStatesList(statesList);
-                    indiaDetails.setUpdatedTime(LocalDateTime.now());
+                    indiaDetails.setUpdatedTime(LocalDate.now());
                     saveByCountry(indiaDetails);
                 });
     }

@@ -19,7 +19,7 @@ public class CountryModel {
     private int numberOfConfirmed;
     private int numberOfDeaths;
     private int numberOfRecovered;
-    private LocalDateTime updatedTime;
+    private LocalDate updatedTime;
     private String countryName;
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
