@@ -62,7 +62,6 @@ public class DashboardService {
     public Boolean getIndianStatesData() {
         var htmlDocumentOptional = htmlUtils.parseHtmlByUrl(indianHealthMinistryUrl);
         if (htmlDocumentOptional.isPresent()) {
-            log.info(htmlDocumentOptional.get().toString());
             var htmlDocument = htmlDocumentOptional.get();
             Elements elementsList = htmlDocument.getElementById("state-data").getElementsByTag("table").select("tr");
             List<StatesModel> placesModelList = elementsList
@@ -99,7 +98,6 @@ public class DashboardService {
             List<CountryModel> countryModelsList = timeSeriesData.entrySet()
                     .stream()
                     .map(entiry -> {
-                        log.info(entiry.getValue().toString());
                         List<Map<String, Object>> countryCompleteData = entiry.getValue();
                         Map<String, Object> latestData = countryCompleteData.get(countryCompleteData.size() - 1);
                         CountryModel countryModel = new CountryModel();
@@ -111,7 +109,6 @@ public class DashboardService {
                         return countryModel;
                     })
                     .collect(Collectors.toList());
-            log.info(countryModelsList.toString());
             PlacesModel placesModel = new PlacesModel();
             placesModel.setTimeOfUpdate(LocalDate.now());
             placesModel.setCountryList(countryModelsList);
